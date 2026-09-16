@@ -1,0 +1,38 @@
+{% extends 'tracker/base.html' %}
+{% block title %}Success Analysis{% endblock %}
+{% block content %}
+
+<h2>Application Success Analysis</h2>
+<p class="text-muted">Conversion rates grouped by job title.</p>
+
+<table class="table table-hover align-middle">
+    <thead>
+        <tr>
+            <th>Job Title</th>
+            <th>Applications</th>
+            <th>Interviewed</th>
+            <th>Offers</th>
+            <th>App → Interview</th>
+            <th>Interview → Offer</th>
+            <th>App → Offer</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for row in results %}
+        <tr>
+            <td>{{ row.job_title }}</td>
+            <td>{{ row.total_applications }}</td>
+            <td>{{ row.total_interviewed }}</td>
+            <td>{{ row.total_offers }}</td>
+            <td><span class="badge bg-light text-dark border">{{ row.app_to_interview }}%</span></td>
+            <td><span class="badge bg-light text-dark border">{{ row.interview_to_offer }}%</span></td>
+            <td><span class="badge bg-light text-dark border">{{ row.app_to_offer }}%</span></td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="7" class="text-muted">No applications yet to analyze.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<p class="mt-3"><a href="{% url 'dashboard' %}">← Back to Dashboard</a></p>
+{% endblock %}

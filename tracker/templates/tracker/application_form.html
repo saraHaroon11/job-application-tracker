@@ -1,0 +1,79 @@
+{% extends 'tracker/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h2>{{ title }}</h2>
+<form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="mb-3">
+        <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+            <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="{% url 'application_list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('form');
+
+    form.addEventListener('submit', function (e) {
+        let errors = [];
+
+        
+        document.querySelectorAll('.js-error').forEach(el => el.remove());
+
+        const jobTitle = form.querySelector('#id_job_title');
+        const appDate = form.querySelector('#id_application_date');
+        const salaryMin = form.querySelector('#id_salary_min');
+        const salaryMax = form.querySelector('#id_salary_max');
+        const jobUrl = form.querySelector('#id_job_url');
+
+        function showError(field, message) {
+            const errorEl = document.createElement('div');
+            errorEl.className = 'text-danger small mt-1 js-error';
+            errorEl.textContent = message;
+            field.insertAdjacentElement('afterend', errorEl);
+            field.classList.add('is-invalid');
+        }
+
+        
+        [jobTitle, appDate, salaryMin, salaryMax, jobUrl].forEach(f => {
+            if (f) f.classList.remove('is-invalid');
+        });
+
+        if (jobTitle && jobTitle.value.trim() === '') {
+            showError(jobTitle, 'Job title is required.');
+            errors.push('title');
+        }
+
+        if (appDate && appDate.value.trim() === '') {
+            showError(appDate, 'Application date is required.');
+            errors.push('date');
+        }
+
+        if (salaryMin && salaryMax && salaryMin.value && salaryMax.value) {
+            if (parseFloat(salaryMin.value) > parseFloat(salaryMax.value)) {
+                showError(salaryMax, 'Maximum salary must be greater than or equal to minimum salary.');
+                errors.push('salary');
+            }
+        }
+
+        if (jobUrl && jobUrl.value.trim() !== '') {
+            const urlPattern = /^https?:\/\/.+\..+/;
+            if (!urlPattern.test(jobUrl.value.trim())) {
+                showError(jobUrl, 'Please enter a valid URL (starting with http:// or https://).');
+                errors.push('url');
+            }
+        }
+
+        if (errors.length > 0) {
+            e.preventDefault(); // stops the form from submitting to Django
+        }
+    });
+});
+</script>
+{% endblock %}

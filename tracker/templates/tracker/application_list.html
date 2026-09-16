@@ -1,0 +1,154 @@
+{% extends 'tracker/base.html' %}
+{% block title %}My Applications{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>My Job Applications</h2>
+    <a href="{% url 'application_create' %}" class="btn btn-silver">+ Add Application</a>
+</div>
+
+
+<form method="get" class="card-tracker p-3 mb-4">
+    <div class="row g-2">
+        <div class="col-md-4">
+            <input type="text" name="q" class="form-control" placeholder="Search title, company, skill..." value="{{ search_query }}">
+        </div>
+        <div class="col-md-2">
+            <select name="status" class="form-select">
+                <option value="">All Statuses</option>
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="company" class="form-select">
+                <option value="">All Companies</option>
+                {% for company in companies %}
+                    <option value="{{ company.id }}" {% if company_filter == company.id|stringformat:"s" %}selected{% endif %}>{{ company.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="date_from" class="form-control" value="{{ date_from }}" title="From date">
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="date_to" class="form-control" value="{{ date_to }}" title="To date">
+        </div>
+    </div>
+    <div class="row g-2 mt-2">
+        <div class="col-md-3">
+            <select name="sort" class="form-select">
+                <option value="newest" {% if sort_by == "newest" %}selected{% endif %}>Newest First</option>
+                <option value="oldest" {% if sort_by == "oldest" %}selected{% endif %}>Oldest First</option>
+                <option value="company" {% if sort_by == "company" %}selected{% endif %}>Company Name</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Apply</button>
+        </div>
+        <div class="col-md-2">
+            <a href="{% url 'application_list' %}" class="btn btn-secondary w-100">Reset</a>
+        </div>
+    </div>
+</form>
+
+<table class="table table-hover align-middle">
+    <thead>
+        <tr><th>Title</th><th>Company</th><th>Status</th><th>Applied</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+    {% for app in page_obj %}
+    <tr>
+        <td><a href="{% url 'application_detail' app.pk %}">{{ app.job_title }}</a></td>
+        <td>{{ app.company.name }}</td>
+        <td>
+            <select class="form-select form-select-sm status-select"
+                    data-url="{% url 'update_status_ajax' app.pk %}"
+                    data-current="{{ app.status }}">
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if app.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td>{{ app.application_date }}</td>
+        <td>
+            <a href="{% url 'application_detail' app.pk %}" class="btn btn-sm btn-steel">View</a>
+            <a href="{% url 'application_update' app.pk %}" class="btn btn-sm btn-rust">Edit</a>
+            <a href="#"
+               class="btn btn-sm btn-accent"
+               data-bs-toggle="modal"
+               data-bs-target="#deleteModal"
+               data-name="{{ app.job_title }}"
+               data-url="{% url 'application_delete' app.pk %}">
+               Delete
+            </a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5" class="text-muted">No applications match your search/filter.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% if page_obj.has_other_pages %}
+<nav>
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ search_query }}&status={{ status_filter }}&sort={{ sort_by }}">Previous</a></li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}&q={{ search_query }}&status={{ status_filter }}&sort={{ sort_by }}">{{ num }}</a>
+            </li>
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ search_query }}&status={{ status_filter }}&sort={{ sort_by }}">Next</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<p class="mt-3"><a href="{% url 'dashboard' %}">← Back to Dashboard</a></p>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    document.querySelectorAll('.status-select').forEach(function (select) {
+        select.addEventListener('change', function () {
+            const url = this.getAttribute('data-url');
+            const newStatus = this.value;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: `status=${encodeURIComponent(newStatus)}`,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.classList.add('border-success');
+                    setTimeout(() => this.classList.remove('border-success'), 1000);
+                } else {
+                    alert('Failed to update status: ' + data.error);
+                    this.value = this.getAttribute('data-current');
+                }
+            })
+            .catch(() => {
+                alert('Network error — status not updated.');
+            });
+        });
+    });
+});
+</script>
+
+{% endblock %}

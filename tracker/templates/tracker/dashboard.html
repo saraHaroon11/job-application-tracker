@@ -1,0 +1,123 @@
+{% extends 'tracker/base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<h2>Dashboard</h2>
+<p class="text-muted">Welcome back, {{ user.username }}.</p>
+<a href="{% url 'success_analysis' %}" class="btn btn-primary mb-3">View Success Analysis →</a>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <div class="p-3 rounded text-white" style="background-color:#0d7377;">
+            <div class="small">Total Applications</div>
+            <div class="fs-3 fw-bold">{{ total_applications }}</div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="p-3 rounded text-white" style="background-color:#4a6fa5;">
+            <div class="small">This Month</div>
+            <div class="fs-3 fw-bold">{{ applications_this_month }}</div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="p-3 rounded text-white" style="background-color:#c1622d;">
+            <div class="small">Total Interviews</div>
+            <div class="fs-3 fw-bold">{{ total_interviews }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="p-3 rounded text-white" style="background-color:#047857;">
+            <div class="small">Total Offers</div>
+            <div class="fs-3 fw-bold">{{ total_offers }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="p-3 rounded text-white" style="background-color:#e8523f;">
+            <div class="small">Total Rejections</div>
+            <div class="fs-3 fw-bold">{{ total_rejections }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Chart -->
+    <div class="col-md-6">
+        <div class="card-tracker p-3 h-100">
+            <h5>Applications by Status</h5>
+            <canvas id="statusChart" height="220"></canvas>
+        </div>
+    </div>
+
+  
+    <div class="col-md-6">
+        <div class="card-tracker p-3 h-100">
+            <h5>Upcoming Interviews</h5>
+            {% for interview in upcoming_interviews %}
+                <div class="border-bottom py-2">
+                    <strong>{{ interview.application.job_title }}</strong> — {{ interview.interview_type }}<br>
+                    <small class="text-muted">📅 {{ interview.interview_date }}</small>
+                </div>
+            {% empty %}
+                <p class="text-muted">No upcoming interviews scheduled.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+   
+    <div class="col-md-6">
+        <div class="card-tracker p-3 h-100">
+            <h5>Top Companies Applied To</h5>
+            {% for company in top_companies %}
+                <div class="d-flex justify-content-between border-bottom py-2">
+                    <span>{{ company.company__name }}</span>
+                    <span class="fw-bold">{{ company.count }}</span>
+                </div>
+            {% empty %}
+                <p class="text-muted">No data yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+   
+    <div class="col-md-6">
+        <div class="card-tracker p-3 h-100">
+            <h5>Most Targeted Skills</h5>
+            {% for skill in top_skills %}
+                <div class="d-flex justify-content-between border-bottom py-2">
+                    <span>{{ skill.name }}</span>
+                    <span class="fw-bold">{{ skill.count }}</span>
+                </div>
+            {% empty %}
+                <p class="text-muted">No data yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{{ chart_labels|json_script:"chart-labels" }}
+{{ chart_data|json_script:"chart-data" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const labels = JSON.parse(document.getElementById('chart-labels').textContent);
+    const data = JSON.parse(document.getElementById('chart-data').textContent);
+
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: ['#0d7377', '#ff6b5b', '#c1622d', '#c98a8a', '#4a6fa5', '#047857', '#94a3b8']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+</script>
+
+{% endblock %}

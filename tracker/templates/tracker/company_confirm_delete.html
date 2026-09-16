@@ -1,0 +1,10 @@
+{% extends 'tracker/base.html' %}
+{% block title %}Delete Company{% endblock %}
+{% block content %}
+<h2>Delete "{{ company.name }}"?</h2>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-accent">Yes, Delete! 😠</button>
+    <a href="{% url 'company_list' %}" class="btn btn-secondary">Cancel ❌</a>
+</form>
+{% endblock %}
