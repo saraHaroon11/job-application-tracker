@@ -5,7 +5,6 @@ from .models import Company, JobApplication, Interview, ApplicationNote
 
 
 class BootstrapFormMixin:
-    """Adds Bootstrap classes to every field automatically."""
     def style_fields(self):
         for field in self.fields.values():
             widget = field.widget
