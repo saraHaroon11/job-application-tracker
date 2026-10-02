@@ -23,8 +23,7 @@ Frontend, in application_list.html:
 
 Alternative Approaches
 ●One alternative would have been a normal HTML form for each row, submitted through POST and reloading the page afterward. This is simpler to implement, but results in a noticeably worse user experience for small, frequent changes, and would not satisfy the requirement of updating without a full page reload.
-●Another alternative is a library called django-htmx, which allows server-rendered HTML fragments to be swapped into a page using HTML attributes rather than hand-written JavaScript. This reduces the amount of JavaScript needed, but introduces an additional dependency and a different way of thinking about the frontend.
-●A third alternative is building a full REST API, for example using Django REST Framework, paired with a JavaScript frontend framework such as React or Vue. This is the standard approach for large, fully decoupled applications, but represents significant additional complexity and overhead for a project of this size and scope.
+●A second alternative is building a full REST API, for example using Django REST Framework, paired with a JavaScript frontend framework such as React or Vue. This is the standard approach for large, fully decoupled applications, but represents significant additional complexity and overhead for a project of this size and scope.
 
 
 Plain Fetch paired with a small, dedicated Django view was chosen here because it requires no new dependencies, keeps the amount of new JavaScript small and easy to explain, and directly demonstrates an understanding of how the browser and server communicate , which fits well within the scope and timeline of this project.
